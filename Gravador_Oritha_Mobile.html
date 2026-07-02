@@ -2,12 +2,9 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0A0C14">
-<title>Gravador Oritha — Mobile</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gravador Oritha — Premium</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=DM+Serif+Display:ital@0;1&display=swap');
 
@@ -253,6 +250,18 @@ select { cursor: pointer; }
 }
 .btn-report:hover { background: var(--gold-glow); }
 
+/* ── DASHBOARD ── */
+.dash-hint { font-size: 13px; color: var(--text2, #999); text-align: center; padding: 20px 0; }
+.metas-hint { font-size: 12px; color: var(--text2, #999); margin-bottom: 10px; text-align: center; }
+.funil-taxas { display: flex; justify-content: space-around; margin-top: 14px; flex-wrap: wrap; gap: 8px; }
+.funil-taxa-item { text-align: center; padding: 8px 12px; background: var(--surface2, #1c1c1c); border-radius: 8px; flex: 1; min-width: 90px; }
+.funil-taxa-pct { font-size: 18px; font-weight: 800; color: var(--gold, #D4AF37); }
+.funil-taxa-label { font-size: 10px; color: var(--text3, #888); text-transform: uppercase; letter-spacing: .05em; margin-top: 2px; }
+.dash-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dash-kpi { background: var(--surface2, #1c1c1c); border-radius: 10px; padding: 14px; border-left: 3px solid var(--gold, #D4AF37); }
+.dash-kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--text3, #888); margin-bottom: 4px; }
+.dash-kpi-value { font-size: 20px; font-weight: 800; color: var(--text, #fff); }
+
 /* ── MODE TOGGLE ── */
 .mode-toggle {
   display: flex; margin: 0 16px 14px;
@@ -444,6 +453,13 @@ select { cursor: pointer; }
   width: 100%; outline: none; padding: 0;
 }
 .confirm-field.full { grid-column: 1 / -1; }
+.toggle-wrap { display: flex; gap: 6px; }
+.toggle-btn {
+  flex: 1; padding: 8px 0; border-radius: 8px; border: 1px solid var(--border, #333);
+  background: transparent; color: var(--text2, #aaa); font-size: 13px; cursor: pointer;
+}
+.toggle-btn.active { background: var(--gold, #D4AF37); color: #1a1a1a; border-color: var(--gold, #D4AF37); font-weight: 600; }
+#ca-reuniao-real-sim.active, #ca-venda-real-sim.active { background: var(--green, #10B981); border-color: var(--green, #10B981); color: #fff; }
 .confirm-field textarea {
   background: transparent; border: none; color: var(--text);
   font-family: 'Inter', sans-serif; font-size: 12px;
@@ -582,54 +598,9 @@ select { cursor: pointer; }
   border: none; border-top: 1px solid var(--border);
   position: relative;
 }
-
-/* ── MOBILE FIXES ── */
-* { -webkit-tap-highlight-color: transparent; }
-body { -webkit-text-size-adjust: 100%; }
-
-/* Botões maiores para toque */
-.btn-main, .btn-secondary, .btn-report, .btn-reuniao, .btn-processar {
-  min-height: 52px;
-  font-size: 15px !important;
-}
-.mode-btn { min-height: 48px; }
-.input-mode-btn { min-height: 44px; }
-
-/* Mic button maior no mobile */
-.mic-btn { width: 104px !important; height: 104px !important; font-size: 40px !important; }
-.mic-ring { width: 124px !important; height: 124px !important; top: -10px !important; left: -10px !important; }
-
-/* Inputs maiores para toque */
-input[type="password"], input[type="text"], input[type="search"],
-input[type="tel"], input[type="url"], select {
-  min-height: 48px;
-  font-size: 16px !important; /* evita zoom automático no iOS */
-}
-
-/* Aviso HTTPS */
-.https-warning {
-  background: rgba(239,68,68,.1);
-  border: 1px solid rgba(239,68,68,.3);
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  font-size: 13px;
-  color: var(--red);
-  margin: 0 16px 14px;
-  line-height: 1.6;
-  display: none;
-}
-.https-warning.show { display: block; }
-.https-warning strong { display: block; margin-bottom: 4px; font-weight: 700; }
-
 </style>
 </head>
 <body>
-
-<!-- HEADER -->
-<div id="https-warning" class="https-warning">
-  <strong>⚠️ Microfone bloqueado</strong>
-  O microfone só funciona via <strong>https://</strong>. Abra este arquivo pelo link do GitHub Pages, não direto do celular.
-</div>
 
 <!-- HEADER -->
 <div class="app-header">
@@ -720,16 +691,8 @@ input[type="tel"], input[type="url"], select {
         </div>
       </div>
 
-      <!-- Botão reunião agendada -->
       <div style="grid-column:1/-1">
-        <div class="reuniao-value-wrap" id="reuniao-value-wrap">
-          <label class="input-label">Valor do investimento desta reunião (R$)</label>
-          <div style="display:flex;gap:8px;margin-top:4px">
-            <input type="text" id="reuniao-valor" placeholder="Ex: 200000" inputmode="numeric" style="flex:1"/>
-            <button onclick="confirmarReuniao()" style="padding:10px 16px;background:var(--green);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;white-space:nowrap;">✓ Confirmar</button>
-          </div>
-        </div>
-        <button class="btn-reuniao" id="btn-reuniao" onclick="mostrarValorReuniao()">📅 Reunião agendada neste contato</button>
+        <div class="metas-hint">Contatos e reuniões contam automaticamente quando você confirma um registro no Gravador.</div>
         <button class="btn-report" onclick="gerarRelatorio()">📊 Gerar relatório do dia (PDF)</button>
       </div>
     </div>
@@ -741,6 +704,7 @@ input[type="tel"], input[type="url"], select {
 <div class="mode-toggle hidden" id="mode-toggle">
   <button class="mode-btn active-acomp" id="btn-acomp" onclick="setMode('acomp')">🔵 Acompanhamento</button>
   <button class="mode-btn" id="btn-prosp" onclick="setMode('prosp')">🟢 Prospecção</button>
+  <button class="mode-btn hidden" id="dash-nav-btn" onclick="setMode('dash')">📊 Dashboard</button>
 </div>
 
 <!-- ===== ACOMPANHAMENTO ===== -->
@@ -798,6 +762,51 @@ input[type="tel"], input[type="url"], select {
   <div class="card hidden" id="trans-card-a">
     <div class="card-title">O que você disse</div>
     <div class="transcription-box" id="trans-box-a"></div>
+  </div>
+
+  <div class="card hidden" id="confirm-card-a">
+    <div class="card-title">Confirme os dados antes de salvar</div>
+    <div class="confirm-grid">
+      <div class="confirm-field">
+        <label>Temperatura</label>
+        <select id="ca-temp">
+          <option value="FRIO">FRIO</option>
+          <option value="MORNO">MORNO</option>
+          <option value="QUENTE">QUENTE</option>
+          <option value="CONGELADO">CONGELADO</option>
+        </select>
+      </div>
+      <div class="confirm-field"><label>Próximo Contato</label><input type="text" id="ca-proximo-contato" placeholder="Ex: 30/06/2026" /></div>
+      <div class="confirm-field"><label>Status IA</label><input type="text" id="ca-status" placeholder="Ex: Aguardando reunião" /></div>
+      <div class="confirm-field full"><label>Próxima Ação</label><input type="text" id="ca-proxima-acao" placeholder="O que fazer no próximo contato" /></div>
+      <div class="confirm-field full"><label>Resumo IA</label><textarea id="ca-resumo"></textarea></div>
+      <div class="confirm-field"><label>Reunião Agendada (data)</label><input type="text" id="ca-reuniao-agendada" placeholder="Ex: 08/07/2026 ou vazio" /></div>
+      <div class="confirm-field">
+        <label>Reunião Realizada?</label>
+        <div class="toggle-wrap">
+          <button type="button" class="toggle-btn active" id="ca-reuniao-real-nao" onclick="setToggle('reuniao-real', false)">Não</button>
+          <button type="button" class="toggle-btn" id="ca-reuniao-real-sim" onclick="setToggle('reuniao-real', true)">Sim</button>
+        </div>
+      </div>
+      <div class="confirm-field">
+        <label>Venda Realizada?</label>
+        <div class="toggle-wrap">
+          <button type="button" class="toggle-btn active" id="ca-venda-real-nao" onclick="setToggle('venda-real', false)">Não</button>
+          <button type="button" class="toggle-btn" id="ca-venda-real-sim" onclick="setToggle('venda-real', true)">Sim</button>
+        </div>
+      </div>
+      <div class="confirm-field" id="ca-valor-vendido-wrap" style="display:none">
+        <label>Valor Vendido (R$)</label><input type="text" id="ca-valor-vendido" placeholder="Ex: 250000" />
+      </div>
+      <div class="confirm-field" id="ca-data-venda-wrap" style="display:none">
+        <label>Data da Venda</label><input type="text" id="ca-data-venda" placeholder="Ex: 02/07/2026" />
+      </div>
+    </div>
+    <div class="saving-indicator" id="saving-acomp">
+      <div class="spinner"></div> Salvando no Google Sheets...
+    </div>
+    <button class="btn-main green" onclick="confirmarAcompanhamento()" id="btn-confirmar-a">✅ Confirmar e Salvar</button>
+    <button class="btn-secondary" onclick="cancelarConfirmacaoAcomp()">✕ Cancelar e gravar novamente</button>
   </div>
 
   <div class="card hidden" id="result-card-a">
@@ -917,6 +926,38 @@ input[type="tel"], input[type="url"], select {
   </div>
 </div>
 
+<!-- ===== DASHBOARD ===== -->
+<div id="section-dash" class="hidden">
+  <div class="card">
+    <div class="card-title">📊 Funil de Conversão</div>
+    <div class="dash-hint" id="dash-loading">Carregando dados da planilha...</div>
+    <div id="dash-funil-wrap" class="hidden">
+      <canvas id="chart-funil" height="180"></canvas>
+      <div class="funil-taxas" id="funil-taxas"></div>
+    </div>
+  </div>
+
+  <div class="card hidden" id="dash-card-mensal">
+    <div class="card-title">📅 Histórico Mensal — Contatos</div>
+    <canvas id="chart-mensal" height="180"></canvas>
+  </div>
+
+  <div class="card hidden" id="dash-card-temp">
+    <div class="card-title">🌡️ Conversão por Temperatura</div>
+    <canvas id="chart-temp" height="200"></canvas>
+  </div>
+
+  <div class="card hidden" id="dash-card-origem">
+    <div class="card-title">📍 Vendas por Origem</div>
+    <canvas id="chart-origem" height="200"></canvas>
+  </div>
+
+  <div class="card hidden" id="dash-card-resumo">
+    <div class="card-title">🏆 Resumo do Mês Atual</div>
+    <div class="dash-kpis" id="dash-kpis"></div>
+  </div>
+</div>
+
 <!-- PDF OVERLAY -->
 <div class="pdf-overlay" id="pdf-overlay">
   <div class="pdf-modal">
@@ -955,13 +996,23 @@ CRITÉRIOS DE TEMPERATURA:
 
 Gere um RESUMO_IA ATUALIZADO incorporando o histórico anterior com as novas informações. Completo, acumulativo e objetivo (4 a 6 linhas). Nunca perca informações do histórico anterior.
 
+Além disso, tente identificar no áudio:
+- Se foi mencionada uma DATA de reunião marcada (futura ou já ocorrida)
+- Se ficou claro que uma reunião JÁ ACONTECEU (não apenas foi marcada)
+- Se houve QUALQUER menção a fechamento, venda ou proposta aceita
+
+Estes três últimos campos são apenas SUGESTÕES — o vendedor sempre confirma manualmente antes de salvar, então não invente: se não tiver certeza, deixe vazio/false.
+
 Retorne APENAS JSON válido, sem markdown:
 {
   "temperatura": "QUENTE|MORNO|FRIO|CONGELADO",
   "resumo": "resumo acumulado completo",
   "proximo_contato": "data ou prazo (ex: 30/06/2026)",
   "proxima_acao": "ação específica e clara para o vendedor",
-  "status": "frase curta sobre o momento atual do lead"
+  "status": "frase curta sobre o momento atual do lead",
+  "reuniao_agendada_sugestao": "data DD/MM/AAAA mencionada, ou vazio",
+  "reuniao_realizada_sugestao": true,
+  "venda_mencionada_sugestao": false
 }`;
 
 const SYSTEM_PROMPT_PROSPECCAO = `Você é um assistente de vendas especialista em consórcio da Embracon (Oritha Consórcios).
@@ -1005,30 +1056,57 @@ let pdfResumoExecutivo = '';
 let pdfDadosDia = null;
 
 // ============================================================
-// METAS — LOCALSTORAGE POR DIA
+// METAS — SINCRONIZADAS VIA PLANILHA (funciona em qualquer aparelho)
 // ============================================================
-function getTodayKey() {
-  const d = new Date();
-  return 'metas_' + d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+let metasCache = null; // último snapshot conhecido: {nome, metaContatos, metaReunioes, contatos, reunioes}
+
+async function carregarMetasServidor() {
+  const base = scriptURL || getURL();
+  if (!base) return null;
+  try {
+    const url = base + '?acao=metas_hoje';
+    const res = await fetch(url);
+    const data = await res.json();
+    if (!data.ok) return null;
+    if (!data.metaDia) return null; // ainda não iniciou o dia neste dispositivo/planilha
+    const dados = {
+      nome: data.metaDia.nome,
+      metaContatos: parseInt(data.metaDia.metaContatos) || 50,
+      metaReunioes: parseInt(data.metaDia.metaReunioes) || 8,
+      contatos: data.contatos || 0,
+      reunioes: data.reunioes || 0
+    };
+    metasCache = dados;
+    return dados;
+  } catch (e) {
+    return null;
+  }
 }
 
-function carregarMetas() {
-  const key = getTodayKey();
-  const raw = localStorage.getItem(key);
-  return raw ? JSON.parse(raw) : null;
-}
-
-function salvarMetasStorage(data) {
-  localStorage.setItem(getTodayKey(), JSON.stringify(data));
-}
-
-function salvarMetas() {
+async function salvarMetas() {
   const nome = document.getElementById('meta-nome').value.trim() || 'Vendedor';
   const mc = parseInt(document.getElementById('meta-contatos').value) || 50;
   const mr = parseInt(document.getElementById('meta-reunioes').value) || 8;
-  const dados = { nome, metaContatos: mc, metaReunioes: mr, contatos: 0, reunioes: 0, leadsReuniao: [] };
-  salvarMetasStorage(dados);
-  exibirPainel(dados);
+  const base = scriptURL || getURL();
+  const payload = { acao: 'salvar_meta', nome, metaContatos: mc, metaReunioes: mr };
+  const url = base + '?payload=' + encodeURIComponent(JSON.stringify(payload));
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.erro || 'Erro ao salvar meta.');
+  } catch (e) {
+    showToast('Erro ao salvar meta: ' + e.message);
+    return;
+  }
+  const dados = await carregarMetasServidor();
+  if (dados) exibirPainel(dados);
+}
+
+// Chamada após cada registro salvo (acompanhamento ou prospecção) para
+// re-sincronizar os contadores do dia direto da planilha.
+async function registrarMetaHoje() {
+  const dados = await carregarMetasServidor();
+  if (dados) atualizarGauges(dados);
 }
 
 function exibirPainel(dados) {
@@ -1068,65 +1146,49 @@ function atualizarGauges(dados) {
   pctElR.classList.toggle('done', r >= mr);
 }
 
-function incrementarContato() {
-  const dados = carregarMetas();
-  if (!dados) return;
-  dados.contatos = (dados.contatos || 0) + 1;
-  salvarMetasStorage(dados);
-  atualizarGauges(dados);
-  // Mostra botão de reunião após cada gravação
-  document.getElementById('btn-reuniao').classList.add('show');
-  document.getElementById('reuniao-value-wrap').classList.remove('show');
-  document.getElementById('reuniao-valor').value = '';
-}
-
-function mostrarValorReuniao() {
-  document.getElementById('reuniao-value-wrap').classList.add('show');
-  document.getElementById('btn-reuniao').classList.remove('show');
-  setTimeout(() => document.getElementById('reuniao-valor').focus(), 100);
-}
-
-function confirmarReuniao() {
-  const val = document.getElementById('reuniao-valor').value.trim();
-  const dados = carregarMetas();
-  if (!dados) return;
-  dados.reunioes = (dados.reunioes || 0) + 1;
-  dados.leadsReuniao = dados.leadsReuniao || [];
-  dados.leadsReuniao.push({
-    nome: currentLead ? currentLead.NOME : (document.getElementById('c-nome')?.value || 'Lead'),
-    valor: parseFloat(val.replace(/\D/g,'')) || 0,
-    hora: new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' })
-  });
-  salvarMetasStorage(dados);
-  atualizarGauges(dados);
-  document.getElementById('reuniao-value-wrap').classList.remove('show');
-  showToast('📅 Reunião registrada!');
-}
-
 // ============================================================
 // RELATÓRIO PDF
 // ============================================================
 async function gerarRelatorio() {
-  const dados = carregarMetas();
-  if (!dados) { showToast('Defina suas metas primeiro.'); return; }
+  if (!metasCache) { showToast('Defina suas metas primeiro.'); return; }
+  const dados = metasCache;
 
   pdfDadosDia = dados;
   document.getElementById('pdf-overlay').classList.add('show');
   document.getElementById('pdf-generating').style.display = 'block';
   document.getElementById('pdf-ready').style.display = 'none';
 
-  const totalInv = (dados.leadsReuniao || []).reduce((s, l) => s + (l.valor || 0), 0);
-  const aprov = dados.metaContatos > 0 ? ((dados.reunioes / dados.contatos) * 100).toFixed(1) : 0;
+  const hojeStr = new Date().toLocaleDateString('pt-BR');
+  let leadsReuniaoHoje = [], leadsVendaHoje = [], totalVendido = 0;
+  try {
+    const base = scriptURL || getURL();
+    const res = await fetch(base + '?acao=registros');
+    const data = await res.json();
+    if (data.ok) {
+      const regsHoje = data.registros.filter(r => (r.DATA_HORA || '').indexOf(hojeStr) === 0);
+      leadsReuniaoHoje = regsHoje.filter(r => r.REUNIAO_REALIZADA === 'Sim')
+        .map(r => ({ nome: r.NOME, hora: (r.DATA_HORA || '').split(' ')[1] || '' }));
+      leadsVendaHoje = regsHoje.filter(r => r.VENDA_REALIZADA === 'Sim')
+        .map(r => ({ nome: r.NOME, valor: parseFloat((r.VALOR_VENDIDO || '0').toString().replace(/\D/g,'')) || 0 }));
+      totalVendido = leadsVendaHoje.reduce((s, l) => s + l.valor, 0);
+    }
+  } catch (e) { /* segue sem os detalhes se a planilha falhar */ }
+
+  pdfDadosDia.leadsReuniao = leadsReuniaoHoje;
+  pdfDadosDia.leadsVenda = leadsVendaHoje;
+  pdfDadosDia.totalVendido = totalVendido;
+
+  const aprov = dados.contatos > 0 ? ((dados.reunioes / dados.contatos) * 100).toFixed(1) : 0;
 
   const prompt = `Você é um analista de desempenho comercial de alto nível. Gere um resumo executivo CONCISO (máximo 5 parágrafos curtos) para um relatório de fim de dia de um consultor de consórcio. Tom: profissional, direto, como um relatório para CEO. Use os dados abaixo.
 
 Vendedor: ${dados.nome}
 Data: ${new Date().toLocaleDateString('pt-BR')}
 Contatos realizados: ${dados.contatos} (meta: ${dados.metaContatos})
-Reuniões agendadas: ${dados.reunioes} (meta: ${dados.metaReunioes})
-Taxa de aproveitamento: ${aprov}%
-Potencial de faturamento (soma investimentos): R$ ${totalInv.toLocaleString('pt-BR')}
-Leads com reunião: ${(dados.leadsReuniao || []).map(l => l.nome + ' (R$ ' + (l.valor||0).toLocaleString('pt-BR') + ')').join(', ') || 'Nenhum'}
+Reuniões realizadas: ${dados.reunioes} (meta: ${dados.metaReunioes})
+Taxa de conversão contato→reunião: ${aprov}%
+Vendas fechadas hoje: ${leadsVendaHoje.length} — total R$ ${totalVendido.toLocaleString('pt-BR')}
+Leads com reunião hoje: ${leadsReuniaoHoje.map(l => l.nome).join(', ') || 'Nenhum'}
 
 Escreva o resumo executivo em texto corrido, sem tópicos, sem markdown. Comece diretamente com a análise.`;
 
@@ -1154,7 +1216,6 @@ function downloadPDF() {
   const dados = pdfDadosDia;
   const resumo = pdfResumoExecutivo;
   const hoje = new Date().toLocaleDateString('pt-BR');
-  const totalInv = (dados.leadsReuniao || []).reduce((s, l) => s + (l.valor || 0), 0);
   const aprov = dados.contatos > 0 ? ((dados.reunioes / dados.contatos) * 100).toFixed(1) : '0.0';
   const atingiuC = dados.contatos >= dados.metaContatos;
   const atingiuR = dados.reunioes >= dados.metaReunioes;
@@ -1165,9 +1226,17 @@ function downloadPDF() {
           <td style="padding:8px 12px;font-size:13px;color:#1a1a2e;">${i+1}</td>
           <td style="padding:8px 12px;font-size:13px;font-weight:600;color:#1a1a2e;">${l.nome}</td>
           <td style="padding:8px 12px;font-size:13px;color:#555;">${l.hora || '—'}</td>
+        </tr>`).join('')
+    : '<tr><td colspan="3" style="padding:12px;text-align:center;color:#999;font-size:13px;">Nenhuma reunião registrada hoje</td></tr>';
+
+  const vendasHTML = (dados.leadsVenda || []).length > 0
+    ? (dados.leadsVenda).map((l, i) => `
+        <tr style="border-bottom:1px solid #eee;">
+          <td style="padding:8px 12px;font-size:13px;color:#1a1a2e;">${i+1}</td>
+          <td style="padding:8px 12px;font-size:13px;font-weight:600;color:#1a1a2e;">${l.nome}</td>
           <td style="padding:8px 12px;font-size:13px;font-weight:700;color:#B8891E;">R$ ${(l.valor||0).toLocaleString('pt-BR')}</td>
         </tr>`).join('')
-    : '<tr><td colspan="4" style="padding:12px;text-align:center;color:#999;font-size:13px;">Nenhuma reunião registrada</td></tr>';
+    : '<tr><td colspan="3" style="padding:12px;text-align:center;color:#999;font-size:13px;">Nenhuma venda fechada hoje</td></tr>';
 
   const html = `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -1249,10 +1318,10 @@ function downloadPDF() {
 
   <div class="pot-faturamento">
     <div>
-      <div class="pot-label">Potencial de Faturamento</div>
-      <div style="font-size:11px;color:#555;margin-top:3px">Soma dos investimentos das reuniões agendadas</div>
+      <div class="pot-label">Vendido Hoje</div>
+      <div style="font-size:11px;color:#555;margin-top:3px">Soma das vendas confirmadas no dia</div>
     </div>
-    <div class="pot-value">R$ ${totalInv.toLocaleString('pt-BR')}</div>
+    <div class="pot-value">R$ ${(dados.totalVendido||0).toLocaleString('pt-BR')}</div>
   </div>
 
   <div class="section-title">Resumo Executivo</div>
@@ -1260,12 +1329,20 @@ function downloadPDF() {
     <div class="exec-text">${resumo.replace(/\n/g, '<br/>')}</div>
   </div>
 
-  <div class="section-title">Reuniões Agendadas</div>
+  <div class="section-title">Reuniões Realizadas</div>
   <table>
     <thead><tr>
-      <th>#</th><th>Lead</th><th>Horário</th><th>Investimento</th>
+      <th>#</th><th>Lead</th><th>Horário</th>
     </tr></thead>
     <tbody>${leadsHTML}</tbody>
+  </table>
+
+  <div class="section-title" style="margin-top:28px">Vendas Fechadas</div>
+  <table>
+    <thead><tr>
+      <th>#</th><th>Lead</th><th>Valor</th>
+    </tr></thead>
+    <tbody>${vendasHTML}</tbody>
   </table>
 
   <div class="footer">
@@ -1276,29 +1353,15 @@ function downloadPDF() {
 </body>
 </html>`;
 
-  // Mobile: abre em nova aba para usar Compartilhar → Imprimir → Salvar PDF
-  const w = window.open('', '_blank');
-  if (w) {
-    w.document.write(html);
-    w.document.close();
-    fecharPdfOverlay();
-    showToast('📊 Relatório aberto! Use Compartilhar → Imprimir para salvar PDF.');
-  } else {
-    // Fallback para Android Chrome (popup bloqueado)
-    try {
-      const blob = new Blob([html], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'relatorio_oritha_' + new Date().toISOString().slice(0,10) + '.html';
-      a.click();
-      URL.revokeObjectURL(url);
-      fecharPdfOverlay();
-      showToast('📥 Relatório baixado!');
-    } catch(e) {
-      showToast('Não foi possível abrir o relatório. Tente novamente.');
-    }
-  }
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'relatorio_oritha_' + new Date().toISOString().slice(0,10) + '.html';
+  a.click();
+  URL.revokeObjectURL(url);
+  fecharPdfOverlay();
+  showToast('📥 Relatório baixado!');
 }
 
 // ============================================================
@@ -1329,20 +1392,7 @@ window.onload = () => {
   // Data no painel
   const hoje = new Date().toLocaleDateString('pt-BR', { weekday:'long', day:'2-digit', month:'long' });
   document.getElementById('metas-date-label').textContent = hoje.charAt(0).toUpperCase() + hoje.slice(1);
-
-  // Carrega metas do dia se já existir
-  const metas = carregarMetas();
-  if (metas) {
-    document.getElementById('meta-nome').value = metas.nome || '';
-    document.getElementById('meta-contatos').value = metas.metaContatos || '';
-    document.getElementById('meta-reunioes').value = metas.metaReunioes || '';
-    // Se já iniciou o dia, mostra gauges diretamente
-    if (metas.metaContatos) {
-      document.getElementById('metas-setup').classList.add('visible');
-    }
-  } else {
-    document.getElementById('metas-setup').classList.add('visible');
-  }
+  document.getElementById('metas-setup').classList.add('visible');
 };
 
 // ============================================================
@@ -1367,15 +1417,21 @@ async function conectar() {
     document.getElementById('btn-conectar').disabled = false;
     document.getElementById('btn-conectar').textContent = '🔄 Reconectar';
 
-    // Inicia painel de metas
-    const metas = carregarMetas();
-    if (metas && metas.metaContatos) {
+    // Inicia painel de metas (via planilha, sincronizado entre aparelhos)
+    const metas = await carregarMetasServidor();
+    if (metas) {
+      document.getElementById('meta-nome').value = metas.nome || '';
+      document.getElementById('meta-contatos').value = metas.metaContatos || '';
+      document.getElementById('meta-reunioes').value = metas.metaReunioes || '';
       document.getElementById('metas-setup').classList.remove('visible');
       document.getElementById('metas-gauges').classList.add('visible');
       atualizarGauges(metas);
     } else {
       document.getElementById('metas-setup').classList.add('visible');
     }
+
+    document.getElementById('dash-nav-btn').classList.remove('hidden');
+    carregarDashboard();
   } catch (err) {
     document.getElementById('conn-loading').classList.remove('show');
     document.getElementById('btn-conectar').disabled = false;
@@ -1423,10 +1479,7 @@ async function processarTexto(id) {
     if (id === 'a') {
       const result = await analyzeAcomp(texto);
       setStep(id, 4);
-      await salvarNoSheets(result);
-      showResultAcomp(result);
-      gravacoesDia++;
-      incrementarContato();
+      showConfirmacaoAcomp(result);
       textarea.value = '';
     } else {
       const result = await analyzeProsp(texto);
@@ -1447,12 +1500,17 @@ function setMode(mode) {
   currentMode = mode;
   document.getElementById('btn-acomp').className = 'mode-btn' + (mode === 'acomp' ? ' active-acomp' : '');
   document.getElementById('btn-prosp').className = 'mode-btn' + (mode === 'prosp' ? ' active-prosp' : '');
+  document.getElementById('dash-nav-btn').className = 'mode-btn' + (mode === 'dash' ? ' active-acomp' : '');
   document.getElementById('section-acomp').classList.toggle('hidden', mode !== 'acomp');
   document.getElementById('section-prosp').classList.toggle('hidden', mode !== 'prosp');
+  document.getElementById('section-dash').classList.toggle('hidden', mode !== 'dash');
   if (mode === 'prosp') {
     document.getElementById('confirm-card').classList.add('hidden');
     document.getElementById('trans-card-p').classList.add('hidden');
     resetRecorder('p');
+  }
+  if (mode === 'dash') {
+    carregarDashboard();
   }
 }
 
@@ -1516,21 +1574,6 @@ async function startRecording(id) {
   if (id === 'a' && !currentLead) { showErr(id, 'Selecione um lead primeiro.'); return; }
   if (id === 'p' && !document.getElementById('prosp-tel').value.trim()) { showErr(id, 'Digite o telefone antes de gravar.'); return; }
   hideErr(id);
-
-  // Verifica HTTPS — microfone é bloqueado em http:// e file://
-  const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  if (!isSecure) {
-    document.getElementById('https-warning').classList.add('show');
-    showErr(id, 'Microfone bloqueado: abra pelo link https:// do GitHub Pages.');
-    return;
-  }
-
-  // Verifica se o navegador suporta getUserMedia
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    showErr(id, 'Seu navegador não suporta gravação de áudio. Use o Chrome.');
-    return;
-  }
-
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1539,22 +1582,12 @@ async function startRecording(id) {
     src.connect(analyser);
     recState[id].ctx = ctx; recState[id].analyser = analyser;
     animateWave(id);
-
-    // Detecta formato suportado — prioriza mp4 (iOS/Safari), depois webm (Android/Chrome)
-    const mime = [
-      'audio/mp4',
-      'audio/webm;codecs=opus',
-      'audio/webm',
-      'audio/ogg'
-    ].find(t => {
-      try { return MediaRecorder.isTypeSupported(t); } catch(e) { return false; }
-    }) || '';
-
-    const mr = new MediaRecorder(stream, mime ? { mimeType: mime } : {});
+    const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg', 'audio/mp4'].find(t => MediaRecorder.isTypeSupported(t)) || '';
+    const mr = new MediaRecorder(stream, { mimeType: mime });
     recorders[id] = mr;
     recState[id].chunks = [];
     mr.ondataavailable = e => { if (e.data.size > 0) recState[id].chunks.push(e.data); };
-    mr.onstop = () => handleStop(id, mr.mimeType || mime || 'audio/webm');
+    mr.onstop = () => handleStop(id, mime);
     mr.start(100);
     recState[id].isRecording = true; recState[id].seconds = 0;
     document.getElementById('mic-btn-' + id).classList.add('recording');
@@ -1567,17 +1600,7 @@ async function startRecording(id) {
       recState[id].seconds++;
       document.getElementById('rec-timer-' + id).textContent = fmt(recState[id].seconds);
     }, 1000);
-  } catch (e) {
-    let msg = 'Não foi possível acessar o microfone.';
-    if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
-      msg = 'Permissão de microfone negada. Toque no cadeado da barra de endereço e permita o microfone.';
-    } else if (e.name === 'NotFoundError') {
-      msg = 'Nenhum microfone encontrado no dispositivo.';
-    } else if (e.name === 'NotSupportedError') {
-      msg = 'Gravação não suportada neste navegador. Use o Chrome.';
-    }
-    showErr(id, msg);
-  }
+  } catch (e) { showErr(id, 'Não foi possível acessar o microfone.'); }
 }
 
 function stopRecording(id) {
@@ -1613,9 +1636,8 @@ function animateWave(id) {
 }
 function setWaveIdle(id) { document.querySelectorAll('#waveform-' + id + ' .wave-bar').forEach(b => b.style.height = '4px'); }
 
-async function handleStop(id, mimeType) {
-  const mime = mimeType || 'audio/webm';
-  const ext = mime.includes('mp4') ? 'm4a' : mime.includes('ogg') ? 'ogg' : 'webm';
+async function handleStop(id, mime) {
+  const ext = mime.includes('ogg') ? 'ogg' : mime.includes('mp4') ? 'mp4' : 'webm';
   const blob = new Blob(recState[id].chunks, { type: mime });
   try {
     setStep(id, 2);
@@ -1626,10 +1648,7 @@ async function handleStop(id, mimeType) {
     if (id === 'a') {
       const result = await analyzeAcomp(trans);
       setStep(id, 4);
-      await salvarNoSheets(result);
-      showResultAcomp(result);
-      gravacoesDia++;
-      incrementarContato();
+      showConfirmacaoAcomp(result);
     } else {
       const result = await analyzeProsp(trans);
       setStep(id, 4);
@@ -1709,7 +1728,13 @@ async function salvarNoSheets(result) {
     acao: 'atualizar', aba: currentLead._aba, linha: currentLead._linha,
     temperatura: result.temperatura, resumo: result.resumo,
     ultimo_contato: today, proximo_contato: result.proximo_contato,
-    proxima_acao: result.proxima_acao, status: result.status
+    proxima_acao: result.proxima_acao, status: result.status,
+    nome_lead: currentLead.NOME, origem_lead: currentLead.ORIGEM,
+    reuniao_agendada: result.reuniao_agendada || '',
+    reuniao_realizada: result.reuniao_realizada ? 'Sim' : 'Não',
+    venda_realizada: result.venda_realizada ? 'Sim' : 'Não',
+    valor_vendido: result.valor_vendido || '',
+    data_venda: result.data_venda || ''
   };
   const url = base + '?payload=' + encodeURIComponent(JSON.stringify(payload));
   const res = await fetch(url);
@@ -1721,6 +1746,261 @@ async function salvarNoSheets(result) {
   currentLead.PROXIMO_CONTATO = result.proximo_contato;
   currentLead.PROXIMA_ACAO = result.proxima_acao;
   currentLead.STATUS_IA = result.status;
+  currentLead.REUNIAO_AGENDADA = payload.reuniao_agendada;
+  currentLead.REUNIAO_REALIZADA = payload.reuniao_realizada;
+  currentLead.VENDA_REALIZADA = payload.venda_realizada;
+  currentLead.VALOR_VENDIDO = payload.valor_vendido;
+  currentLead.DATA_VENDA = payload.data_venda;
+}
+
+// ============================================================
+// CONFIRMAÇÃO ACOMPANHAMENTO
+// ============================================================
+let toggleState = { 'reuniao-real': false, 'venda-real': false };
+
+function setToggle(campo, valor) {
+  toggleState[campo] = valor;
+  document.getElementById('ca-' + campo + '-sim').classList.toggle('active', valor);
+  document.getElementById('ca-' + campo + '-nao').classList.toggle('active', !valor);
+  if (campo === 'venda-real') {
+    document.getElementById('ca-valor-vendido-wrap').style.display = valor ? 'block' : 'none';
+    document.getElementById('ca-data-venda-wrap').style.display = valor ? 'block' : 'none';
+    if (valor && !document.getElementById('ca-data-venda').value) {
+      document.getElementById('ca-data-venda').value = new Date().toLocaleDateString('pt-BR');
+    }
+  }
+}
+
+let acompResultAtual = null;
+
+function showConfirmacaoAcomp(r) {
+  acompResultAtual = r;
+  document.getElementById('ca-temp').value = r.temperatura || 'FRIO';
+  document.getElementById('ca-proximo-contato').value = r.proximo_contato || '';
+  document.getElementById('ca-status').value = r.status || '';
+  document.getElementById('ca-proxima-acao').value = r.proxima_acao || '';
+  document.getElementById('ca-resumo').value = r.resumo || '';
+  document.getElementById('ca-reuniao-agendada').value = r.reuniao_agendada_sugestao || '';
+  document.getElementById('ca-valor-vendido').value = '';
+  document.getElementById('ca-data-venda').value = '';
+  // Reunião realizada e venda SEMPRE nascem em "Não" — o vendedor confirma manualmente
+  setToggle('reuniao-real', false);
+  setToggle('venda-real', false);
+  document.getElementById('confirm-card-a').classList.remove('hidden');
+  setTimeout(() => document.getElementById('confirm-card-a').scrollIntoView({ behavior: 'smooth' }), 100);
+}
+
+async function confirmarAcompanhamento() {
+  const result = {
+    temperatura: document.getElementById('ca-temp').value,
+    resumo: document.getElementById('ca-resumo').value.trim(),
+    proximo_contato: document.getElementById('ca-proximo-contato').value.trim(),
+    proxima_acao: document.getElementById('ca-proxima-acao').value.trim(),
+    status: document.getElementById('ca-status').value.trim(),
+    reuniao_agendada: document.getElementById('ca-reuniao-agendada').value.trim(),
+    reuniao_realizada: toggleState['reuniao-real'],
+    venda_realizada: toggleState['venda-real'],
+    valor_vendido: document.getElementById('ca-valor-vendido').value.trim(),
+    data_venda: document.getElementById('ca-data-venda').value.trim()
+  };
+  document.getElementById('btn-confirmar-a').disabled = true;
+  document.getElementById('saving-acomp').classList.add('show');
+  try {
+    await salvarNoSheets(result);
+    document.getElementById('confirm-card-a').classList.add('hidden');
+    showResultAcomp(result);
+    gravacoesDia++;
+    await registrarMetaHoje(result.reuniao_realizada);
+  } catch (e) {
+    showErr('a', 'Erro ao salvar: ' + e.message);
+  } finally {
+    document.getElementById('btn-confirmar-a').disabled = false;
+    document.getElementById('saving-acomp').classList.remove('show');
+  }
+}
+
+function cancelarConfirmacaoAcomp() {
+  document.getElementById('confirm-card-a').classList.add('hidden');
+  document.getElementById('trans-card-a').classList.add('hidden');
+  document.getElementById('steps-a').classList.add('hidden');
+}
+
+// ============================================================
+// DASHBOARD — histórico e funil (fonte: aba REGISTROS)
+// ============================================================
+let dashCharts = {};
+
+function parseDataHora(s) {
+  // formato: dd/MM/yyyy HH:mm:ss
+  const [datePart, timePart] = (s || '').split(' ');
+  if (!datePart) return null;
+  const [d, m, y] = datePart.split('/').map(Number);
+  if (!d || !m || !y) return null;
+  return new Date(y, m - 1, d, ...(timePart ? timePart.split(':').map(Number) : [0,0,0]));
+}
+
+function destruirGrafico(id) {
+  if (dashCharts[id]) { dashCharts[id].destroy(); delete dashCharts[id]; }
+}
+
+async function carregarDashboard() {
+  document.getElementById('dash-loading').classList.remove('hidden');
+  document.getElementById('dash-funil-wrap').classList.add('hidden');
+  ['dash-card-mensal','dash-card-temp','dash-card-origem','dash-card-resumo'].forEach(id =>
+    document.getElementById(id).classList.add('hidden'));
+
+  const base = scriptURL || getURL();
+  let registros = [];
+  try {
+    const res = await fetch(base + '?acao=registros');
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.erro || 'Erro ao carregar histórico.');
+    registros = data.registros || [];
+  } catch (e) {
+    document.getElementById('dash-loading').textContent = 'Erro ao carregar dashboard: ' + e.message;
+    return;
+  }
+
+  document.getElementById('dash-loading').classList.add('hidden');
+  document.getElementById('dash-funil-wrap').classList.remove('hidden');
+
+  if (registros.length === 0) {
+    document.getElementById('dash-loading').classList.remove('hidden');
+    document.getElementById('dash-funil-wrap').classList.add('hidden');
+    document.getElementById('dash-loading').textContent = 'Ainda não há registros suficientes no histórico. Continue gravando no Gravador que os gráficos aparecem aqui.';
+    return;
+  }
+
+  registros.forEach(r => { r._data = parseDataHora(r.DATA_HORA); });
+
+  renderFunil(registros);
+  renderMensal(registros);
+  renderTemperatura(registros);
+  renderOrigem(registros);
+  renderResumoMes(registros);
+}
+
+function renderFunil(registros) {
+  const totalContatos = registros.length;
+  const reunioesAgendadas = registros.filter(r => (r.REUNIAO_AGENDADA || '').trim() !== '').length;
+  const reunioesRealizadas = registros.filter(r => r.REUNIAO_REALIZADA === 'Sim').length;
+  const vendas = registros.filter(r => r.VENDA_REALIZADA === 'Sim').length;
+
+  destruirGrafico('funil');
+  const ctx = document.getElementById('chart-funil').getContext('2d');
+  dashCharts['funil'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Contatos', 'Reuniões Agendadas', 'Reuniões Realizadas', 'Vendas'],
+      datasets: [{
+        data: [totalContatos, reunioesAgendadas, reunioesRealizadas, vendas],
+        backgroundColor: ['#D4AF37', '#E0B94D', '#10B981', '#0A9A6A']
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+    }
+  });
+
+  const taxaReuniao = totalContatos > 0 ? ((reunioesRealizadas / totalContatos) * 100).toFixed(1) : '0.0';
+  const taxaVenda = reunioesRealizadas > 0 ? ((vendas / reunioesRealizadas) * 100).toFixed(1) : '0.0';
+  const taxaGeral = totalContatos > 0 ? ((vendas / totalContatos) * 100).toFixed(1) : '0.0';
+
+  document.getElementById('funil-taxas').innerHTML = `
+    <div class="funil-taxa-item"><div class="funil-taxa-pct">${taxaReuniao}%</div><div class="funil-taxa-label">Contato → Reunião</div></div>
+    <div class="funil-taxa-item"><div class="funil-taxa-pct">${taxaVenda}%</div><div class="funil-taxa-label">Reunião → Venda</div></div>
+    <div class="funil-taxa-item"><div class="funil-taxa-pct">${taxaGeral}%</div><div class="funil-taxa-label">Contato → Venda</div></div>
+  `;
+}
+
+function renderMensal(registros) {
+  const porMes = {};
+  registros.forEach(r => {
+    if (!r._data) return;
+    const chave = r._data.getFullYear() + '-' + String(r._data.getMonth() + 1).padStart(2, '0');
+    porMes[chave] = (porMes[chave] || 0) + 1;
+  });
+  const chaves = Object.keys(porMes).sort().slice(-6);
+  if (chaves.length === 0) return;
+
+  const nomesMes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const labels = chaves.map(k => { const [y, m] = k.split('-'); return nomesMes[parseInt(m) - 1] + '/' + y.slice(2); });
+  const valores = chaves.map(k => porMes[k]);
+
+  document.getElementById('dash-card-mensal').classList.remove('hidden');
+  destruirGrafico('mensal');
+  const ctx = document.getElementById('chart-mensal').getContext('2d');
+  dashCharts['mensal'] = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{ label: 'Contatos', data: valores, borderColor: '#D4AF37', backgroundColor: 'rgba(212,175,55,.15)', fill: true, tension: .3 }] },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+  });
+}
+
+function renderTemperatura(registros) {
+  const temps = ['QUENTE', 'MORNO', 'FRIO', 'CONGELADO'];
+  const contatosPorTemp = {}, vendasPorTemp = {};
+  temps.forEach(t => { contatosPorTemp[t] = 0; vendasPorTemp[t] = 0; });
+  registros.forEach(r => {
+    const t = (r.TEMPERATURA || '').toUpperCase();
+    if (!temps.includes(t)) return;
+    contatosPorTemp[t]++;
+    if (r.VENDA_REALIZADA === 'Sim') vendasPorTemp[t]++;
+  });
+  const taxas = temps.map(t => contatosPorTemp[t] > 0 ? +((vendasPorTemp[t] / contatosPorTemp[t]) * 100).toFixed(1) : 0);
+
+  document.getElementById('dash-card-temp').classList.remove('hidden');
+  destruirGrafico('temp');
+  const ctx = document.getElementById('chart-temp').getContext('2d');
+  dashCharts['temp'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: temps,
+      datasets: [{ label: 'Taxa de conversão em venda (%)', data: taxas, backgroundColor: ['#EF4444','#F59E0B','#3B82F6','#94A3B8'] }]
+    },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+  });
+}
+
+function renderOrigem(registros) {
+  const vendasPorOrigem = {};
+  registros.forEach(r => {
+    if (r.VENDA_REALIZADA !== 'Sim') return;
+    const o = (r.ORIGEM || 'Não informado').trim() || 'Não informado';
+    vendasPorOrigem[o] = (vendasPorOrigem[o] || 0) + 1;
+  });
+  const origens = Object.keys(vendasPorOrigem);
+  if (origens.length === 0) return;
+
+  document.getElementById('dash-card-origem').classList.remove('hidden');
+  destruirGrafico('origem');
+  const ctx = document.getElementById('chart-origem').getContext('2d');
+  dashCharts['origem'] = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: origens, datasets: [{ label: 'Vendas', data: origens.map(o => vendasPorOrigem[o]), backgroundColor: '#D4AF37' }] },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+  });
+}
+
+function renderResumoMes(registros) {
+  const agora = new Date();
+  const doMes = registros.filter(r => r._data && r._data.getMonth() === agora.getMonth() && r._data.getFullYear() === agora.getFullYear());
+  const contatos = doMes.length;
+  const reunioes = doMes.filter(r => r.REUNIAO_REALIZADA === 'Sim').length;
+  const vendasDoMes = doMes.filter(r => r.VENDA_REALIZADA === 'Sim');
+  const totalVendido = vendasDoMes.reduce((s, r) => s + (parseFloat((r.VALOR_VENDIDO || '0').toString().replace(/\D/g,'')) || 0), 0);
+  const taxa = contatos > 0 ? ((vendasDoMes.length / contatos) * 100).toFixed(1) : '0.0';
+
+  document.getElementById('dash-card-resumo').classList.remove('hidden');
+  document.getElementById('dash-kpis').innerHTML = `
+    <div class="dash-kpi"><div class="dash-kpi-label">Contatos no mês</div><div class="dash-kpi-value">${contatos}</div></div>
+    <div class="dash-kpi"><div class="dash-kpi-label">Reuniões realizadas</div><div class="dash-kpi-value">${reunioes}</div></div>
+    <div class="dash-kpi"><div class="dash-kpi-label">Vendas fechadas</div><div class="dash-kpi-value">${vendasDoMes.length}</div></div>
+    <div class="dash-kpi"><div class="dash-kpi-label">Total vendido</div><div class="dash-kpi-value">R$ ${totalVendido.toLocaleString('pt-BR')}</div></div>
+    <div class="dash-kpi" style="grid-column:1/-1"><div class="dash-kpi-label">Taxa de conversão contato → venda</div><div class="dash-kpi-value">${taxa}%</div></div>
+  `;
 }
 
 // ============================================================
@@ -1798,7 +2078,7 @@ async function confirmarNovoLead() {
     const data = await res.json();
     if (!data.ok) throw new Error(data.erro || 'Erro ao salvar.');
     gravacoesDia++;
-    incrementarContato();
+    await registrarMetaHoje();
     document.getElementById('confirm-card').classList.add('hidden');
     document.getElementById('trans-card-p').classList.add('hidden');
     document.getElementById('prosp-tel').value = '';
